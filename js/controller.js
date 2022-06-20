@@ -1,35 +1,57 @@
 'use strict'
 
-function controller() {
-    const arr = [];
-    const form = '#todoForm';
-    const htmlForm = document.querySelector(form);
+function controller(view, model, outPut) {
+    const formSelector = outPut.formSelector;
+    const containerSelector = outPut.containerSelector;
 
-    const inputs = htmlForm.querySelectorAll('input, textarea');
-    const input = Array.from(inputs);
+    const form = document.getElementById(formSelector);
+    const container = document.getElementById(containerSelector);
+    const inputs = form.querySelectorAll('input, textarea');
 
-    let i = 0;
+    model.init(formSelector);
+    view.init(form, container);
 
-    const handleSubmit = (event) => {
+    const getDataForm = (inputsCollection) => {
+        if(inputsCollection instanceof NodeList) inputsCollection = Array.from(inputsCollection);
+        return inputsCollection.reduce((acc, item) => {
+                acc[item.name] = item.value
+                return acc;
+            },{}
+        );
+    }
+
+    const submitHandler = (event) => {
         event.preventDefault();
         event.stopPropagation();
+//     @todo input value check
+        const data = getDataForm(inputs);
+        view.addToDoItem(model.setData(data));
+    }
 
-        const data = input.reduce((acc,input) => {
-            acc[input.name] = input.value;
-            return acc;
-        },{});
+    const contentLoadedHandler = () => {
+        if(model.getData()) model.getData().forEach((item) => view.addToDoItem(item));
+    }
 
-        arr.push(data);
-        localStorage.setItem(form, JSON.stringify(arr));
+    const removeToDoItem = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if(event.target instanceof HTMLButtonElement) {
+            const toDoItem = event.target.parentElement.parentElement;
+            const id = +toDoItem.getAttribute('data-todo-id');
 
-        const data2 = JSON.parse(localStorage.getItem(form));
-        view(data2[i], htmlForm);
-        i += 1;
-    };
+            model.removeToDoItem(id);
+            view.removeToDoItem(toDoItem);
+            if(localStorage.length < 1) view.resetForm(form);
+        }
+    }
 
-    htmlForm.addEventListener('submit', handleSubmit);
+    form.addEventListener('submit', submitHandler);
+    window.addEventListener('DOMContentLoaded', contentLoadedHandler);
+    container.addEventListener('click', removeToDoItem);
+
 
     return {
 
     }
 }
+
