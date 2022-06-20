@@ -1,12 +1,13 @@
 'use strict'
 
 function controller(view, model, outPut) {
+
     const formSelector = outPut.formSelector;
     const containerSelector = outPut.containerSelector;
+    const selectorSelector = outPut.selectorSelector;
 
     const form = document.getElementById(formSelector);
     const container = document.getElementById(containerSelector);
-    const inputs = form.querySelectorAll('input, textarea');
 
     model.init(formSelector);
     view.init(form, container);
@@ -23,13 +24,26 @@ function controller(view, model, outPut) {
     const submitHandler = (event) => {
         event.preventDefault();
         event.stopPropagation();
+        const inputs = form.querySelectorAll('input, textarea');
+
 //     @todo input value check
         const data = getDataForm(inputs);
+
         view.addToDoItem(model.setData(data));
     }
 
     const contentLoadedHandler = () => {
         if(model.getData()) model.getData().forEach((item) => view.addToDoItem(item));
+    }
+
+    const selectHandler = (event) => {
+        event.stopPropagation();
+        if(event.target instanceof HTMLSelectElement) {
+            const selectValue = event.target.value;
+            const id = +event.target.getAttribute('data-select-id');
+
+            model.setSelect(id, selectValue);
+        }
     }
 
     const removeToDoItem = (event) => {
@@ -48,10 +62,9 @@ function controller(view, model, outPut) {
     form.addEventListener('submit', submitHandler);
     window.addEventListener('DOMContentLoaded', contentLoadedHandler);
     container.addEventListener('click', removeToDoItem);
-
+    container.addEventListener('click', selectHandler);
 
     return {
-
     }
 }
 

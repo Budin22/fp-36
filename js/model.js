@@ -4,7 +4,7 @@ const model = () => {
     return {
         form: null,
         id: null,
-        currentData: null,
+        selectValue: null,
 
         init (formName) {
             this.form = formName;
@@ -15,6 +15,15 @@ const model = () => {
         getData() {
             return JSON.parse(localStorage.getItem(this.form));
         },
+        setSelect(idSelectItem, selectValue) {
+            const data = this.getData();
+            data.forEach((item) => {
+                if(item.id === idSelectItem) {
+                    item.select = selectValue;
+                }
+            });
+            localStorage.setItem(this.form, JSON.stringify(data));
+        },
 
         setData(data) {
             const  toDoItemData = structuredClone(data);
@@ -22,9 +31,13 @@ const model = () => {
             const localStorageDataContainer = savedData ? savedData : [];
 
             if(savedData) this.id += 1;
+
             toDoItemData.id = this.id;
+            // toDoItemData.select = this.selectValue;
+
             localStorageDataContainer.push(toDoItemData);
             localStorage.setItem(this.form, JSON.stringify(localStorageDataContainer));
+
             return toDoItemData;
         },
         removeToDoItem(idRemoveItem) {
